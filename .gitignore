@@ -1,0 +1,14 @@
+# Rust build artifacts
+/target/
+
+# macOS filesystem noise
+.DS_Store
+
+# Editor/IDE metadata
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Local environment/log noise
+*.log
