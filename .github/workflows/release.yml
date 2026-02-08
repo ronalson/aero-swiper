@@ -11,15 +11,7 @@ permissions:
 
 jobs:
   build:
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - runner: macos-13
-            arch: x86_64
-          - runner: macos-14
-            arch: arm64
-    runs-on: ${{ matrix.runner }}
+    runs-on: macos-14
 
     steps:
       - name: Checkout
@@ -36,12 +28,12 @@ jobs:
           VERSION: ${{ github.ref_name }}
         run: |
           mkdir -p dist
-          bash scripts/package_release.sh "${{ matrix.arch }}" "${VERSION}"
+          bash scripts/package_release.sh arm64 "${VERSION}"
 
       - name: Upload Build Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: aeroswiper-${{ matrix.arch }}
+          name: aeroswiper-arm64
           path: dist/*.tar.gz
 
   publish:

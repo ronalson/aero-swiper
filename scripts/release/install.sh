@@ -11,15 +11,9 @@ LAUNCH_AGENTS_DIR="${HOME}/Library/LaunchAgents"
 PLIST_DST="${LAUNCH_AGENTS_DIR}/${LABEL}.plist"
 LOG_DIR="${HOME}/Library/Logs"
 BIN_PATH="${APP_BUNDLE}/Contents/MacOS/aeroswiper"
-PLIST_TEMPLATE="${SCRIPT_DIR}/${LABEL}.plist.in"
 
 if [ ! -d "${SCRIPT_DIR}/${APP_NAME}.app" ]; then
   echo "Missing ${APP_NAME}.app next to install.sh"
-  exit 1
-fi
-
-if [ ! -f "${PLIST_TEMPLATE}" ]; then
-  echo "Missing plist template: ${PLIST_TEMPLATE}"
   exit 1
 fi
 
@@ -29,9 +23,30 @@ rm -rf "${APP_BUNDLE}"
 cp -R "${SCRIPT_DIR}/${APP_NAME}.app" "${APP_BUNDLE}"
 chmod 755 "${BIN_PATH}"
 
-sed \
-  "s|@BINARY_PATH@|${BIN_PATH}|g; s|@OUT_LOG@|${LOG_DIR}/aeroswiper.out|g; s|@ERR_LOG@|${LOG_DIR}/aeroswiper.err|g" \
-  "${PLIST_TEMPLATE}" > "${PLIST_DST}"
+cat > "${PLIST_DST}" <<EOF
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+  <dict>
+    <key>Label</key>
+    <string>${LABEL}</string>
+    <key>ProgramArguments</key>
+    <array>
+      <string>${BIN_PATH}</string>
+    </array>
+    <key>RunAtLoad</key>
+    <true/>
+    <key>LimitLoadToSessionType</key>
+    <string>Aqua</string>
+    <key>ProcessType</key>
+    <string>Interactive</string>
+    <key>StandardOutPath</key>
+    <string>${LOG_DIR}/aeroswiper.out</string>
+    <key>StandardErrorPath</key>
+    <string>${LOG_DIR}/aeroswiper.err</string>
+  </dict>
+</plist>
+EOF
 
 launchctl unload "${PLIST_DST}" 2>/dev/null || true
 launchctl load "${PLIST_DST}"

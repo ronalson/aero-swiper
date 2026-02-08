@@ -60,13 +60,13 @@ Set `AEROSPACE_SOCKET_PATH` in the LaunchAgent plist if you use a non-default pa
 `AeroSwiper` requires macOS Accessibility permission to observe gesture events. Grant access only to builds from source you trust and review.
 
 ## Binary distribution (GitHub Releases)
-This repo includes packaging + GitHub Actions to publish unsigned macOS release archives for Intel and Apple Silicon.
+This repo includes packaging + GitHub Actions to publish unsigned macOS release archives for Apple Silicon (arm64) only.
 
 Each release artifact contains:
 - `AeroSwiper.app`
 - `install.sh`
 - `uninstall.sh`
-- `com.ronalson.aeroswiper.plist.in`
+- `INSTALL.md`
 
 ### Maintainer setup (one-time)
 1. Push this repository (including `.github/workflows/release.yml`).
@@ -79,23 +79,24 @@ Each release artifact contains:
 git tag v0.1.0
 git push origin v0.1.0
 ```
-2. GitHub Actions will build on `macos-13` (`x86_64`) and `macos-14` (`arm64`), package artifacts, and publish a GitHub Release automatically.
+2. GitHub Actions will build on `macos-14` (`arm64`), package artifacts, and publish a GitHub Release automatically.
 
 ### Optional: create release with GitHub CLI
 You can also trigger a release manually after local packaging:
 ```bash
 cargo build --release
 bash scripts/package_release.sh arm64 v0.1.0
-bash scripts/package_release.sh x86_64 v0.1.0
-gh release create v0.1.0 dist/aeroswiper-macos-arm64-v0.1.0.tar.gz dist/aeroswiper-macos-x86_64-v0.1.0.tar.gz --generate-notes
+gh release create v0.1.0 dist/aeroswiper-macos-arm64-v0.1.0.tar.gz --generate-notes
 ```
 
 ### End-user install from release archive
-1. Download the correct `tar.gz` for your Mac architecture from GitHub Releases.
-2. Extract it.
-3. Run:
+1. Download `aeroswiper-macos-arm64-<version>.tar.gz` from GitHub Releases.
+2. Check architecture if needed: `uname -m` (must be `arm64`).
+3. Extract it and run:
 ```bash
-cd aeroswiper-macos-<arch>
+tar -xzf aeroswiper-macos-arm64-<version>.tar.gz
+cd aeroswiper-macos-arm64
 ./install.sh
 ```
 4. Grant Accessibility permission when prompted.
+5. See bundled `INSTALL.md` for quick reference.

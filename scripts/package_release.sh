@@ -2,12 +2,18 @@
 set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "$0")/.." && pwd)"
-ARCH="${1:-}"
-VERSION="${2:-dev}"
+ARCH="arm64"
+VERSION="dev"
 
-if [ -z "${ARCH}" ]; then
-  echo "Usage: scripts/package_release.sh <arm64|x86_64> [version]"
-  exit 1
+if [ "${#}" -ge 1 ]; then
+  if [ "$1" = "arm64" ]; then
+    ARCH="$1"
+    if [ "${#}" -ge 2 ]; then
+      VERSION="$2"
+    fi
+  else
+    VERSION="$1"
+  fi
 fi
 
 BIN_SRC="${ROOT_DIR}/target/release/aeroswiper"
@@ -27,10 +33,9 @@ mkdir -p "${APP_ROOT}/MacOS" "${APP_ROOT}/Resources"
 
 cp "${BIN_SRC}" "${APP_ROOT}/MacOS/aeroswiper"
 cp "${ROOT_DIR}/AeroSwiper.Info.plist.in" "${APP_ROOT}/Info.plist"
-cp "${ROOT_DIR}/com.ronalson.aeroswiper.plist.in" "${PKG_ROOT}/com.ronalson.aeroswiper.plist.in"
 cp "${ROOT_DIR}/scripts/release/install.sh" "${PKG_ROOT}/install.sh"
 cp "${ROOT_DIR}/scripts/release/uninstall.sh" "${PKG_ROOT}/uninstall.sh"
-cp "${ROOT_DIR}/README.md" "${PKG_ROOT}/README.md"
+cp "${ROOT_DIR}/scripts/release/INSTALL.md" "${PKG_ROOT}/INSTALL.md"
 
 chmod 755 "${APP_ROOT}/MacOS/aeroswiper" "${PKG_ROOT}/install.sh" "${PKG_ROOT}/uninstall.sh"
 
