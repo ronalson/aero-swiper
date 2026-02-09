@@ -8,18 +8,12 @@ A minimal macOS app for AeroSpace workspace switching:
 
 ## Install
 1. Download `aeroswiper-macos-arm64-<version>.pkg` from GitHub Releases.
-2. Double-click the `.pkg` and complete installation.
-3. Trigger the Accessibility prompt:
-```bash
-~/Applications/AeroSwiper.app/Contents/MacOS/aeroswiper --prompt-accessibility --check-accessibility || true
-```
-4. Enable `AeroSwiper` in System Settings -> Privacy & Security -> Accessibility.
-5. If needed, restart the app (just run it).
+2. Double-click the `.pkg`.
+3. If macOS blocks it, open:
+> System Settings -> Privacy & Security -> Open Anyway
+4. Complete installation.
+5. Enable `AeroSwiper` in System Settings -> Privacy & Security -> Accessibility.
 
-If macOS blocks the app:
-```bash
-xattr -dr com.apple.quarantine ~/Applications/AeroSwiper.app
-```
 
 ## Uninstall
 ```bash
