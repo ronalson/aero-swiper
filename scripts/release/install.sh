@@ -23,6 +23,13 @@ rm -rf "${APP_BUNDLE}"
 cp -R "${SCRIPT_DIR}/${APP_NAME}.app" "${APP_BUNDLE}"
 chmod 755 "${BIN_PATH}"
 
+# Unsigned app bundles downloaded from browsers are usually quarantined.
+# Remove quarantine so LaunchAgent can execute the binary on first run.
+if command -v xattr >/dev/null 2>&1; then
+  xattr -dr com.apple.quarantine "${SCRIPT_DIR}/${APP_NAME}.app" 2>/dev/null || true
+  xattr -dr com.apple.quarantine "${APP_BUNDLE}" 2>/dev/null || true
+fi
+
 cat > "${PLIST_DST}" <<EOF
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">

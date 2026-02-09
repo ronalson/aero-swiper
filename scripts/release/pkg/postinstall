@@ -1,0 +1,83 @@
+#!/bin/bash
+set -euo pipefail
+
+LOG_FILE="/tmp/aeroswiper-postinstall.log"
+exec > >(tee -a "${LOG_FILE}") 2>&1
+echo "[$(date)] AeroSwiper postinstall start"
+trap 'echo "postinstall failed at line $LINENO with exit code $?"' ERR
+echo "postinstall args: pkg_path=${1:-} install_location=${2:-} target_root=${3:-}"
+
+APP_NAME="AeroSwiper"
+LABEL="com.ronalson.aeroswiper"
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+APP_ARCHIVE="${SCRIPT_DIR}/${APP_NAME}.app.tar.gz"
+
+CONSOLE_USER="$(stat -f%Su /dev/console)"
+if [ -z "${CONSOLE_USER}" ] || [ "${CONSOLE_USER}" = "root" ]; then
+  echo "Install completed. Login to a user session to finalize AeroSwiper setup."
+  exit 0
+fi
+
+USER_UID="$(id -u "${CONSOLE_USER}")"
+USER_GROUP="$(id -gn "${CONSOLE_USER}")"
+USER_HOME="$(dscl . -read "/Users/${CONSOLE_USER}" NFSHomeDirectory | awk '{print $2}')"
+if [ -z "${USER_HOME}" ]; then
+  USER_HOME="/Users/${CONSOLE_USER}"
+fi
+
+USER_APPS_DIR="${USER_HOME}/Applications"
+APP_BUNDLE="${USER_APPS_DIR}/${APP_NAME}.app"
+BIN_PATH="${APP_BUNDLE}/Contents/MacOS/aeroswiper"
+LAUNCH_AGENTS_DIR="${USER_HOME}/Library/LaunchAgents"
+PLIST_DST="${LAUNCH_AGENTS_DIR}/${LABEL}.plist"
+LOG_DIR="${USER_HOME}/Library/Logs"
+
+if [ ! -f "${APP_ARCHIVE}" ]; then
+  echo "App archive not found at ${APP_ARCHIVE}"
+  exit 1
+fi
+
+mkdir -p "${USER_APPS_DIR}" "${LAUNCH_AGENTS_DIR}" "${LOG_DIR}"
+chown "${CONSOLE_USER}:${USER_GROUP}" "${USER_APPS_DIR}" "${LAUNCH_AGENTS_DIR}" "${LOG_DIR}" 2>/dev/null || true
+
+rm -rf "${APP_BUNDLE}"
+tar -xzf "${APP_ARCHIVE}" -C "${USER_APPS_DIR}"
+chown -R "${CONSOLE_USER}:${USER_GROUP}" "${APP_BUNDLE}"
+
+if command -v xattr >/dev/null 2>&1; then
+  xattr -dr com.apple.quarantine "${APP_BUNDLE}" 2>/dev/null || true
+fi
+
+cat > "${PLIST_DST}" <<EOF
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+  <dict>
+    <key>Label</key>
+    <string>${LABEL}</string>
+    <key>ProgramArguments</key>
+    <array>
+      <string>${BIN_PATH}</string>
+    </array>
+    <key>RunAtLoad</key>
+    <true/>
+    <key>LimitLoadToSessionType</key>
+    <string>Aqua</string>
+    <key>ProcessType</key>
+    <string>Interactive</string>
+    <key>StandardOutPath</key>
+    <string>${LOG_DIR}/aeroswiper.out</string>
+    <key>StandardErrorPath</key>
+    <string>${LOG_DIR}/aeroswiper.err</string>
+  </dict>
+</plist>
+EOF
+
+chown "${CONSOLE_USER}:${USER_GROUP}" "${PLIST_DST}"
+
+launchctl bootout "gui/${USER_UID}" "${PLIST_DST}" 2>/dev/null || true
+launchctl bootstrap "gui/${USER_UID}" "${PLIST_DST}" 2>/dev/null || true
+launchctl kickstart -k "gui/${USER_UID}/${LABEL}" 2>/dev/null || true
+
+echo "AeroSwiper installed to ${APP_BUNDLE}. Enable it in System Settings > Privacy & Security > Accessibility."
+echo "[$(date)] AeroSwiper postinstall end"

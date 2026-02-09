@@ -28,13 +28,13 @@ jobs:
           VERSION: ${{ github.ref_name }}
         run: |
           mkdir -p dist
-          bash scripts/package_release.sh arm64 "${VERSION}"
+          bash scripts/package_release.sh "${VERSION}"
 
       - name: Upload Build Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: aeroswiper-arm64
-          path: dist/*.tar.gz
+          name: aeroswiper-pkg-arm64
+          path: dist/*.pkg
 
   publish:
     needs: build
@@ -50,11 +50,11 @@ jobs:
       - name: Prepare Files
         run: |
           mkdir -p release
-          find dist -name "*.tar.gz" -type f -exec cp {} release/ \;
+          find dist -name "*.pkg" -type f -exec cp {} release/ \;
           ls -l release
 
       - name: Publish GitHub Release
         uses: softprops/action-gh-release@v2
         with:
-          files: release/*.tar.gz
+          files: release/*.pkg
           generate_release_notes: true

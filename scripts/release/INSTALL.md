@@ -1,25 +1,25 @@
-# AeroSwiper Release Install
+# AeroSwiper Package Install (arm64)
 
-## 1) Pick the right archive
-- Apple Silicon (M1/M2/M3/M4): `aeroswiper-macos-arm64-<version>.tar.gz`
-
-Tip: run `uname -m`
-- `arm64` => Apple Silicon
-If output is not `arm64`, this release package is not supported on your device.
-
-## 2) Extract and install
+## Install
+1. Download `aeroswiper-macos-arm64-<version>.pkg` from GitHub Releases.
+2. Double-click the `.pkg` and complete the installer.
+3. Trigger the Accessibility prompt:
 ```bash
-tar -xzf aeroswiper-macos-<arch>-<version>.tar.gz
-cd aeroswiper-macos-arm64
-./install.sh
+~/Applications/AeroSwiper.app/Contents/MacOS/aeroswiper --prompt-accessibility --check-accessibility || true
+```
+4. Open System Settings -> Privacy & Security -> Accessibility and enable `AeroSwiper`.
+
+## If macOS blocks the app after install
+In Terminal:
+```bash
+xattr -dr com.apple.quarantine ~/Applications/AeroSwiper.app
+```
+Then restart your session or run:
+```bash
+launchctl kickstart -k gui/$(id -u)/com.ronalson.aeroswiper
 ```
 
-## 3) Grant Accessibility
-When prompted, enable `AeroSwiper` in:
-System Settings -> Privacy & Security -> Accessibility
-
-## 4) Uninstall (optional)
+## Uninstall
 ```bash
-cd aeroswiper-macos-arm64
-./uninstall.sh
+~/Applications/AeroSwiper.app/Contents/Resources/uninstall.sh
 ```
